@@ -454,6 +454,9 @@ protocol wants string lengths in terms of codepoints."
 
 ;;;; TCP server
 
+(definterface create-local-socket (path &key backlog)
+  "Create a local socket bound to PATH.")
+
 (definterface create-socket (host port &key backlog)
   "Create a listening TCP socket on interface HOST and port PORT.
 BACKLOG queue length for incoming connections.")
