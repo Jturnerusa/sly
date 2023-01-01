@@ -117,6 +117,11 @@
     ;; if there isn't any address for the host.
     (first addresses)))
 
+(defimplementation create-local-socket (path &key backlog)
+  (let ((socket (make-instance 'sb-bsd-sockets:local-socket :type :stream)))    
+    (sb-bsd-sockets:socket-bind socket path)
+    (sb-bsd-sockets:socket-listen socket (or backlog 5))
+    socket))
 
 (defimplementation create-socket (host port &key backlog)
   (let* ((host-ent (resolve-hostname host))
