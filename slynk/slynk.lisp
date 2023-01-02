@@ -720,8 +720,11 @@ corresponding values in the CDR of VALUE."
   "List of all active connections, with the most recent at the front.")
 
 (defvar *servers* '()
-  "A list ((server-socket port thread) ...) describing the listening sockets.
-Used to close sockets on server shutdown or restart.")
+  "A list ((server-socket port/path thread) ...) describing the listening sockets.
+Used to close sockets on server shutdown or restart.
+
+The port/path element can be either a port for a normal TCP socket, or a path for a 
+local socket.")
 
 ;; FIXME: we simply access the global variable here.  We could ask the
 ;; sentinel thread instead but then we still have the problem that the
@@ -756,16 +759,18 @@ recently established one."
     ((:close-connection connection condition backtrace)
      (close-connection% connection condition backtrace)
      (sentinel-maybe-exit))
-    ((:add-server socket port thread)
-     (push (list socket port thread) *servers*))
-    ((:stop-server key port)
-     (sentinel-stop-server key port)
+    ((:add-server socket port/path thread)
+     (push (list socket port/path thread) *servers*))    
+    ((:stop-server key socket/port/path)
+     (sentinel-stop-server key socket/port/path)
      (sentinel-maybe-exit))))
 
 (defun sentinel-stop-server (key value)
   (let ((probe (find value *servers* :key (ecase key
                                             (:socket #'car)
-                                            (:port #'cadr)))))
+                                            (:port #'cadr)
+                                            (:path #'cadr))
+                                      :test #'equal)))
     (cond (probe
            (setq *servers* (delete probe *servers*))
            (destructuring-bind (socket _port thread) probe
