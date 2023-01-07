@@ -334,6 +334,11 @@ The default is nil, as this feature can be a security risk."
   :type 'bool
   :group 'sly-lisp)
 
+(defcustom sly-local-socket-name "slynk"
+  "The default Name of the local socket to connect to."
+  :type 'string
+  :group 'sly-lisp)
+
 (defvar sly-connect-host-history (list sly-lisp-host))
 (defvar sly-connect-port-history (list (prin1-to-string sly-port)))
 
