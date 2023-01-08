@@ -118,7 +118,8 @@
     (first addresses)))
 
 (defimplementation create-local-socket (path &key backlog)
-  (let ((socket (make-instance 'sb-bsd-sockets:local-socket :type :stream)))    
+  (let ((socket (make-instance 'sb-bsd-sockets:local-socket :type :stream)))
+    (setf (sb-bsd-sockets:sockopt-reuse-address socket) t)
     (sb-bsd-sockets:socket-bind socket path)
     (sb-bsd-sockets:socket-listen socket (or backlog 5))
     socket))
