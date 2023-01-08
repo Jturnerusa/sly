@@ -923,6 +923,13 @@ keywords: :BOUNDP, :FBOUNDP, :CONSTANT, :GENERIC-FUNCTION,
 
 (defparameter *loopback-interface* "localhost")
 
+(defun start-local-socket-server (path
+                                  &key (style *communication-style*)
+                                    (dont-close *dont-close*))
+  "Start a local socket server listening on PATH."
+  (setq *m-x-sly-from-emacs* t)
+  (setup-server path nil style dont-close nil))
+
 (defun start-server (port-file
                      &key (style *communication-style*)
                        (dont-close *dont-close*))
@@ -932,6 +939,13 @@ This is the entry point for Emacs."
   (setup-server 0
                 (lambda (port) (announce-server-port port-file port))
                 style dont-close nil))
+
+(defun create-local-socket-server (path
+                                   &key (style *communication-style*)
+                                   (dont-close *dont-close*)
+                                   backlog)
+  "Start a SLYNK server and use a local socket for communication."
+  (setup-server path nil style dont-close backlog))
 
 (defun create-server (&key (port default-server-port)
                         (style *communication-style*)
