@@ -993,10 +993,21 @@ taken."
          (add-fd-handler socket #'serve))
         ((nil) (serve-loop))))
     port))
+    port/path))
 
-(defun stop-server (port)
-  "Stop server running on PORT."
-  (send-to-sentinel `(:stop-server :port ,port)))
+(defun stop-server (port/path)
+  "Stop server running on PORT, or bound to PATH."
+  (send-to-sentinel `(:stop-server ,(if (numberp port/path)
+                                         :port
+                                         :path)
+                                   ,port/path)))
+
+(defun restart-local-socket-server (path &key (style *communication-style*)
+                                           (dont-close *dont-close*))
+  "Local socket server altnernative to restart-server."
+  (stop-server path)
+  (sleep 5)
+  (create-local-socket-server path :style style :dont-close dont-close))
 
 (defun restart-server (&key (port default-server-port)
                        (style *communication-style*)
