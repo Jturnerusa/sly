@@ -1259,6 +1259,24 @@ DIRECTORY change to this directory before starting the process.
       (sly-inferior-connect proc args)
       (sly-inferior-lisp-buffer proc))))
 
+(defun sly-local-socket-connect (socket-path &optional _coding-system interactive-p)
+  "sly-connect local socket alternative."
+  (interactive (list (read-file-name
+                      "[sly] Socket path: "
+                      default-directory
+                      sly-local-socket-name
+                      t)
+                     nil t))
+  (when (and interactive-p
+             sly-net-processes
+             current-prefix-arg
+             (sly-y-or-n-p "[sly] Close all connections first? "))
+    (sly-disconnect-all))
+  (sly-message "Connecting to Slynk at %s" socket-path)
+  (let* ((process (sly-net-connect :local-socket-path socket-path))
+         (sly-dispatching-connection process))
+    (sly-setup-connection process)))
+
 ;;;###autoload
 (defun sly-connect (host port &optional _coding-system interactive-p)
   "Connect to a running Slynk server. Return the connection.
