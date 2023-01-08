@@ -974,25 +974,30 @@ taken."
         (ignore-errors (list (parse-integer (read-line *query-io*)))))
       (setq port new-port))))
 
-(defun setup-server (port announce-fn style dont-close backlog)
-  (init-log-output)
-  (let* ((socket (socket-quest port backlog))
-         (port (local-port socket)))
-    (funcall announce-fn port)
+(defun setup-server (port/path announce-fn style dont-close backlog)
+  (init-log-output)  
+  (let* ((local-socket? (not (numberp port/path)))
+         (socket (if local-socket?
+                     (create-local-socket port/path :backlog backlog)
+                     (socket-quest port/path backlog)))
+         (port/path (if local-socket?
+                        port/path
+                        (local-port socket))))
+    (unless local-socket?
+      (funcall announce-fn port/path))
     (labels ((serve () (accept-connections socket style dont-close))
-             (note () (send-to-sentinel `(:add-server ,socket ,port
+             (note () (send-to-sentinel `(:add-server ,socket ,port/path
                                                       ,(current-thread))))
              (serve-loop () (note) (loop do (serve) while dont-close)))
       (ecase style
         (:spawn (initialize-multiprocessing
                  (lambda ()
                    (start-sentinel)
-                   (spawn #'serve-loop :name (format nil "Slynk ~s" port)))))
+                   (spawn #'serve-loop :name (format nil "Slynk ~s" port/path)))))
         ((:fd-handler :sigio)
          (note)
          (add-fd-handler socket #'serve))
         ((nil) (serve-loop))))
-    port))
     port/path))
 
 (defun stop-server (port/path)
