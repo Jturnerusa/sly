@@ -1548,11 +1548,24 @@ first line of the file."
                            payload)))
       (process-send-string proc string))))
 
-(defun sly-net-connect (host port)
+(cl-defun sly-net-connect (&key host port local-socket-path)
   "Establish a connection with a CL."
   (let* ((inhibit-quit nil)
          (name (format "sly-%s" (cl-incf sly--net-connect-counter)))
-         (connection (open-network-stream name nil host port))
+         ;; The weird formatting on the quasiquoted list below is
+         ;; intentional, see the link below for more info.
+         ;; https://emacs.stackexchange.com/questions/10230/how-to-indent-keywords-aligned         
+         (connection  (apply 'make-network-process `(:name
+                                                     ,name
+                                                     ,@(if local-socket-path
+                                                           `(:family
+                                                             :local
+                                                             :remote
+                                                             ,local-socket-path)
+                                                         `(:host
+                                                           ,host
+                                                           :service
+                                                           ,port)))))
          (buffer (sly-make-net-buffer (format " *%s*" name))))
     (push connection sly-net-processes)
     (set-process-plist connection `(sly--net-connect-counter
