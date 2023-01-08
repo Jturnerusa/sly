@@ -1278,7 +1278,7 @@ before."
              (sly-y-or-n-p "[sly] Close all connections first? "))
     (sly-disconnect-all))
   (sly-message "Connecting to Slynk on port %S.." port)
-  (let* ((process (sly-net-connect host port))
+  (let* ((process (sly-net-connect :host host :port port))
          (sly-dispatching-connection process))
     (sly-setup-connection process)))
 
